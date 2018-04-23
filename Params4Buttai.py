@@ -28,23 +28,27 @@ from keras.layers import Input
 from keras.models import Model
 from keras.layers.normalization import BatchNormalization
 from keras.layers import ZeroPadding2D
+from getDataSet import getDataSet
+import numpy as np
 
-batch_size = 32
-num_classes = 10
-epochs = 10
+batch_size = 5
+num_classes = 3
+epochs = 3
 data_augmentation = True
+img_rows,img_cols=300,300  #128,128       #224,224  #300,300
 
 # The data, shuffled and split between train and test sets:
-(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+#(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+x_train, y_train, x_test, y_test = getDataSet(img_rows,img_cols)
 
 #x_train=x_train[0:1000]
 #y_train=y_train[0:1000]
 #x_test=x_test[0:1000]
 #y_test=y_test[0:1000]
 
-print('x_train shape:', x_train.shape)
-print(x_train.shape[0], 'train samples')
-print(x_test.shape[0], 'test samples')
+#print('x_train shape:', x_train.shape)
+#print(x_train.shape[0], 'train samples')
+#print(x_test.shape[0], 'test samples')
 
     
 
@@ -61,41 +65,41 @@ def model_cifar(input_shape, num_classes=10):
     # Block 1
     conv1_1 = Conv2D(filter*1, (3, 3), name='conv1_1', padding='same', activation='relu')(x)
     conv1_2 = Conv2D(filter*1, (3, 3), name='conv1_2', padding='same', activation='relu')(conv1_1)
-    #conv1_2 = BatchNormalization(axis=3)(conv1_2)  
-    #drop_1 = Dropout(0.5)(conv1_2)               
+    conv1_2 = BatchNormalization(axis=3)(conv1_2)  
+    drop_1 = Dropout(0.5)(conv1_2)               
     pool1 = AveragePooling2D(name='pool1', pool_size=(2, 2), strides=(2, 2), padding='same', )(conv1_2)
 
     # Block 2
     conv2_1 = Conv2D(filter*2, (3, 3), name='conv2_1', padding='same', activation='relu')(pool1)
     conv2_2 = Conv2D(filter*2, (3, 3), name='conv2_2', padding='same', activation='relu')(conv2_1)
-    #conv2_2 = BatchNormalization(axis=3)(conv2_2)  
-    #drop_2 = Dropout(0.5)(conv2_2)               
+    conv2_2 = BatchNormalization(axis=3)(conv2_2)  
+    drop_2 = Dropout(0.5)(conv2_2)               
     pool2 = AveragePooling2D(name='pool2', pool_size=(2, 2), strides=(2, 2), padding='same')(conv2_2)
 
     # Block 3
     conv3_1 = Conv2D(filter*4, (3, 3), name='conv3_1', padding='same', activation='relu')(pool2)
     conv3_2 = Conv2D(filter*4, (3, 3), name='conv3_2', padding='same', activation='relu')(conv3_1)
     conv3_3 = Conv2D(filter*4, (3, 3), name='conv3_3', padding='same', activation='relu')(conv3_2)
-    #conv3_3 = BatchNormalization(axis=3)(conv3_3)  
-    #drop_3 = Dropout(0.5)(conv3_3)               
+    conv3_3 = BatchNormalization(axis=3)(conv3_3)  
+    drop_3 = Dropout(0.5)(conv3_3)               
     pool3 = AveragePooling2D(name='pool3', pool_size=(2, 2), strides=(2, 2), padding='same')(conv3_3)
     
     # Block 4
     conv4_1 = Conv2D(filter*8, (3, 3), name='conv4_1', padding='same', activation='relu')(pool3)
     conv4_2 = Conv2D(filter*8, (3, 3), name='conv4_2', padding='same', activation='relu')(conv4_1)
     conv4_3 = Conv2D(filter*8, (3, 3), name='conv4_3', padding='same', activation='relu')(conv4_2)
-    #conv4_3 = BatchNormalization(axis=3)(conv4_3)  
-    #drop_4 = Dropout(0.5)(conv4_3)               
+    conv4_3 = BatchNormalization(axis=3)(conv4_3)  
+    drop_4 = Dropout(0.5)(conv4_3)               
     pool4 = AveragePooling2D(name='pool4', pool_size=(2, 2), strides=(2, 2), padding='same')(conv4_3)
     
     # Block 5
     conv5_1 = Conv2D(filter*8, (3, 3), name='conv5_1', padding='same', activation='relu')(pool4)
     conv5_2 = Conv2D(filter*8, (3, 3), name='conv5_2', padding='same', activation='relu')(conv5_1)
     conv5_3 = Conv2D(filter*8, (3, 3), name='conv5_3', padding='same', activation='relu')(conv5_2)
-    #conv5_3 = BatchNormalization(axis=3)(conv5_3)  
-    #drop_5 = Dropout(0.5)(conv5_3)               
+    conv5_3 = BatchNormalization(axis=3)(conv5_3)  
+    drop_5 = Dropout(0.5)(conv5_3)               
     pool5 = AveragePooling2D(name='pool5', pool_size=(3, 3), strides=(1, 1), padding='same')(conv5_3)
-    
+    """
     # FC6
     fc6 = Conv2D(filter*16, (3, 3), name='fc6', dilation_rate=(6, 6), padding='same', activation='relu')(pool5)  #pool5 16
     fc6 = Dropout(0.5, name='drop6')(fc6)
@@ -107,26 +111,26 @@ def model_cifar(input_shape, num_classes=10):
     # Block 6
     conv6_1 = Conv2D(filter*8, (1, 1), name='conv6_1', padding='same', activation='relu')(fc7) #8
     conv6_2 = Conv2D(filter*16, (3, 3), name='conv6_2', strides=(2, 2), padding='same', activation='relu')(conv6_1) #16
-    #conv6_2 = BatchNormalization(axis=3)(conv6_2)  
+    conv6_2 = BatchNormalization(axis=3)(conv6_2)  
     conv6_2 = Dropout(0.5)(conv6_2)               
 
     # Block 7
     conv7_1 = Conv2D(filter*4, (1, 1), name='conv7_1', padding='same', activation='relu')(conv6_2) #4
     conv7_1z = ZeroPadding2D(name='conv7_1z')(conv7_1)
     conv7_2 = Conv2D(filter*4, (3, 3), name='conv7_2', padding='valid', strides=(2, 2), activation='relu')(conv7_1z) #4
-    #conv7_2 = BatchNormalization(axis=3)(conv7_2)  
+    conv7_2 = BatchNormalization(axis=3)(conv7_2)  
     conv7_2 = Dropout(0.5)(conv7_2)               
 
     # Block 8
     conv8_1 = Conv2D(filter*2, (1, 1), name='conv8_1', padding='same', activation='relu')(conv7_2)  #2
     conv8_2 = Conv2D(filter*32, (3, 3), name='conv8_2', padding='same', strides=(2, 2), activation='relu')(conv8_1) #4
-    #conv8_2 = BatchNormalization(axis=3)(conv8_2)  
+    conv8_2 = BatchNormalization(axis=3)(conv8_2)  
     conv8_2 = Dropout(0.5)(conv8_2)               
 
     # Last Pool
     #pool6 = GlobalAveragePooling2D(name='pool6')(conv8_2) #GlobalAveragePooling2D
-    
-    flatten_1 = Flatten()(conv8_2)
+    """
+    flatten_1 = Flatten()(pool5)   #conv8_2)
     dense_1 = Dense(512, name='dense_1')(flatten_1)
     act_1 = Activation('relu')(dense_1)
     drop_6 = Dropout(0.5)(act_1)
@@ -137,21 +141,20 @@ def model_cifar(input_shape, num_classes=10):
     return models.Model(x, outputs=softmax)
 
 
+model=model_cifar(input_shape=[img_rows,img_cols, 3], num_classes=3)
 # load the weights from the last epoch
-#model.load_weights('params_cifar10model_epoch.hdf5')
-
-model=model_cifar(input_shape=[32, 32, 3], num_classes=10)
+model.load_weights('weights_SSD300.hdf5', by_name=True)
 
 freeze = ['input_1', 'conv1_1', 'conv1_2', 'pool1',
           'conv2_1', 'conv2_2', 'pool2',
           'conv3_1', 'conv3_2', 'conv3_3', 'pool3',
           'conv4_1', 'conv4_2', 'conv4_3', 'pool4',
           'conv5_1', 'conv5_2', 'conv5_3', 'pool5']
-
+"""
 for L in model.layers:
     if L.name in freeze:
         L.trainable = False
-
+"""
 
 def schedule(epoch, decay=0.8):   #0.9
     return base_lr * decay**(epoch)
@@ -178,10 +181,12 @@ model.compile(loss='categorical_crossentropy',
 model.summary()        
         
 # load weights for every block as the same name block
-model.load_weights("block_1_1_009", by_name=True)
+#model.load_weights("block_1_1_009", by_name=True)
 
-x_train = x_train.astype('float32')
-x_test = x_test.astype('float32')
+#x_train = x_train.astype('float32')
+x_train = np.array(x_train, dtype=np.float32)
+#x_test = x_test.astype('float32')
+x_test = np.array(x_test, dtype=np.float32)
 x_train /= 255
 x_test /= 255
 
@@ -212,7 +217,7 @@ else:
     # Compute quantities required for feature-wise normalization
     # (std, mean, and principal components if ZCA whitening is applied).
     datagen.fit(x_train)
-    for j in range(2):
+    for j in range(10):
         # Fit the model on the batches generated by datagen.flow().
         model.fit_generator(datagen.flow(x_train, y_train,
                                      batch_size=batch_size),
@@ -223,7 +228,7 @@ else:
 
         # save weights every epoch
         
-        model.save_weights("block_1_1_8_2_{0:03d}".format(j))
+        model.save_weights("all_block_{0:03d}".format(j))
         
         score = model.evaluate(x_test, y_test, verbose=0)
         print('Test loss:', score[0])
